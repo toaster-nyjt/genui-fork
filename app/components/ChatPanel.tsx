@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 
 export interface Message {
   id: string;
+  // Assistant means message sent from chat bot
   role: 'user' | 'assistant';
   content: string;
 }
@@ -39,23 +40,30 @@ const EXAMPLE_PROMPTS = [
 
 export default function ChatPanel({
   messages,
-  onSend,
+  onSend, // Inherently has a onSend that calls POST
   isGenerating,
 }: ChatPanelProps) {
+
+  // Represents user's text input
   const [input, setInput] = useState('');
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  // Persists and gets set to a div at the bottom of panel
+  const messagesEndRef = useRef<HTMLDivElement>(null); 
+  // So that the text area doesn't reset each rerender from useState
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  // From example button
   const handleExampleClick = (prompt: string) => {
     if (!isGenerating) {
       onSend(prompt);
     }
   };
 
+  // Enables the auto scrolling by reloading page after new message
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  // Calls onSend which calls POST
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (input.trim() && !isGenerating) {
@@ -64,6 +72,7 @@ export default function ChatPanel({
     }
   };
 
+  // Sends if enter
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -93,8 +102,9 @@ export default function ChatPanel({
         </span>
       </div>
 
-      {/* Messages */}
+      {/* Examples / messages */}
       <div className="flex-1 overflow-y-auto p-4">
+        {/* Displays exampels if just starting chat */}
         {messages.length === 0 ? (
           <div className="flex h-full flex-col items-center justify-center px-4">
             <div
@@ -130,6 +140,7 @@ export default function ChatPanel({
             </p>
             <div className="grid w-full max-w-md gap-2">
               {EXAMPLE_PROMPTS.map((example) => (
+                // Creates buttons for each example
                 <button
                   key={example.title}
                   onClick={() => handleExampleClick(example.prompt)}
@@ -139,6 +150,7 @@ export default function ChatPanel({
                     border: '1px solid var(--border-primary)',
                     backgroundColor: 'var(--bg-tertiary)',
                   }}
+                  // Interactive Buttons with onMouse functions
                   onMouseEnter={(e) => {
                     e.currentTarget.style.borderColor =
                       'var(--border-secondary)';
@@ -167,12 +179,14 @@ export default function ChatPanel({
               ))}
             </div>
           </div>
-        ) : (
+        ) : ( // If sent at least one message:
           <div className="flex flex-col gap-4">
+            {/* Displays the messages */}
             {messages.map((message) => (
               <div
                 key={message.id}
                 className={`flex ${
+                  // Format chat vs user messages like a normal text chat
                   message.role === 'user' ? 'justify-end' : 'justify-start'
                 }`}
               >
@@ -195,6 +209,7 @@ export default function ChatPanel({
                 </div>
               </div>
             ))}
+            {/* Loading w/ boolean && ()*/}
             {isGenerating && (
               <div className="flex justify-start">
                 <div
@@ -218,6 +233,8 @@ export default function ChatPanel({
                 </div>
               </div>
             )}
+            {/* Sets messagesEndRef.current to point to this div at the bottom
+            so that the message list auto scrolls to the bottom */}
             <div ref={messagesEndRef} />
           </div>
         )}
@@ -236,10 +253,13 @@ export default function ChatPanel({
               backgroundColor: 'var(--bg-tertiary)',
             }}
           >
+            {/* Text box */}
             <textarea
               ref={textareaRef}
+              // Handles displaying user's text 
               value={input}
-              onChange={(e) => setInput(e.target.value)}
+              onChange={(e) => setInput(e.target.value)} // Updates keystrokes
+              // Checks each key if enter -> Send
               onKeyDown={handleKeyDown}
               placeholder="Describe the component you want..."
               disabled={isGenerating}
@@ -253,6 +273,7 @@ export default function ChatPanel({
               <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
                 Enter to send · Shift+Enter for new line
               </span>
+              {/* Send button */}
               <button
                 type="button"
                 onClick={handleSubmit}

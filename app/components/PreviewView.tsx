@@ -1,29 +1,15 @@
 "use client";
-
-import { useEffect, useState } from "react";
+import CodeProps from "@/app/utils/spec";
+import useHandleDarkMode from "../utils/darkmode";
 import {
   SandpackProvider,
   SandpackPreview,
   SandpackLayout,
 } from "@codesandbox/sandpack-react";
 
-interface PreviewViewProps {
-  code: string;
-  isStreaming: boolean;
-}
-
-export default function PreviewView({ code, isStreaming }: PreviewViewProps) {
-  const [isDarkMode, setIsDarkMode] = useState(true);
-
-  // Detect color scheme
-  useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    setIsDarkMode(mediaQuery.matches);
-    
-    const handler = (e: MediaQueryListEvent) => setIsDarkMode(e.matches);
-    mediaQuery.addEventListener('change', handler);
-    return () => mediaQuery.removeEventListener('change', handler);
-  }, []);
+// The actual preview
+export default function PreviewView({ code, isStreaming }: CodeProps) {
+  const { isDarkMode } = useHandleDarkMode();
 
   // Show empty state when no code
   if (!code) {
@@ -69,6 +55,7 @@ export default function PreviewView({ code, isStreaming }: PreviewViewProps) {
         className="flex h-full flex-col items-center justify-center text-center"
         style={{ backgroundColor: 'var(--bg-secondary)' }}
       >
+        {/* Loading */}
         <div className="mb-4 rounded-full p-4" style={{ backgroundColor: 'var(--bg-elevated)' }}>
           <svg
             className="h-8 w-8 animate-spin"
@@ -127,6 +114,7 @@ export default function App() {
       <SandpackProvider
         template="react-ts"
         theme={isDarkMode ? "dark" : "light"}
+        // Displays the App files within the panel
         files={files}
         customSetup={{
           dependencies: {

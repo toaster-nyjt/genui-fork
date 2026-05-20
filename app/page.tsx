@@ -15,18 +15,25 @@ function stripCodeFences(code: string): string {
 
 export default function Home() {
   const [messages, setMessages] = useState<Message[]>([]);
+  // Called in API calling function, sets -> stream updates code -> sets again
   const [generatedCode, setGeneratedCode] = useState<string>("");
+  // Informs components on if API is streaming resulting code
   const [isGenerating, setIsGenerating] = useState(false);
+  // Proportion of main div that is the left chat panel
   const [splitPosition, setSplitPosition] = useState(38.2); // golden ratio: ~38.2% : ~61.8%
+  // Whether mouse is down, applies only to drag bar
   const [isDragging, setIsDragging] = useState(false);
+  // Pattern: Setting useRef vars of DOM objects (this is the main wrap container)
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // mouse drag bar->change width of chat panel
     const handleMouseMove = (e: MouseEvent) => {
       if (!isDragging || !containerRef.current) return;
       
-      const container = containerRef.current;
-      const rect = container.getBoundingClientRect();
+      const container = containerRef.current; 
+      const rect = container.getBoundingClientRect(); // Position of main div
+      // Handles proportion of container to the left of drag bar
       const x = e.clientX - rect.left;
       const percentage = (x / rect.width) * 100;
       
@@ -37,7 +44,8 @@ export default function Home() {
     const handleMouseUp = () => {
       setIsDragging(false);
     };
-
+    
+    // Adds the event listeners only after drag, nothing on load in
     if (isDragging) {
       document.addEventListener("mousemove", handleMouseMove);
       document.addEventListener("mouseup", handleMouseUp);
@@ -53,23 +61,29 @@ export default function Home() {
     };
   }, [isDragging]);
 
+  // Load-bearing 10%
+  // Gets called when user sends prompt, function is cached with useCallback
   const handleSend = useCallback(async (prompt: string) => {
-    // Add user message
+    // Create new user message from prompt
     const userMessage: Message = {
       id: crypto.randomUUID(),
       role: "user",
       content: prompt,
     };
-    setMessages((prev) => [...prev, userMessage]);
-    setIsGenerating(true);
+    // Destructures previous messages for multi-turn interaction
+    setMessages((prev) => [...prev, userMessage]); // prev is current message[], adds the new message
+    setIsGenerating(true); // Sets isStreaming 
     setGeneratedCode("");
 
     try {
+      // Calls API Route (in route.ts)
       const response = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        // Sends in the latest prompt along with message history
         body: JSON.stringify({
           prompt,
+          // Utilizes the messages state var
           history: messages.map((m) => ({
             role: m.role,
             content: m.content,
@@ -85,6 +99,7 @@ export default function Home() {
       const decoder = new TextDecoder();
       let fullCode = "";
 
+      // Gradual setting of code -> changes generatedCode
       if (reader) {
         while (true) {
           const { done, value } = await reader.read();
@@ -95,7 +110,7 @@ export default function Home() {
         }
       }
 
-      // Add assistant message
+      // Add assistant message (static response message)
       const assistantMessage: Message = {
         id: crypto.randomUUID(),
         role: "assistant",
@@ -111,24 +126,24 @@ export default function Home() {
       };
       setMessages((prev) => [...prev, errorMessage]);
     } finally {
-      setIsGenerating(false);
+      setIsGenerating(false); // Shuts off isStreaming 
     }
   }, [messages]);
 
   return (
     <div 
-      ref={containerRef}
+      ref={containerRef} // Initializes .current
       className="flex h-screen w-screen overflow-hidden"
       style={{ backgroundColor: 'var(--bg-primary)' }}
     >
       {/* Left Panel - Chat */}
       <div 
         className="h-full shrink-0"
-        style={{ width: `${splitPosition}%` }}
+        style={{ width: `${splitPosition}%` }}  
       >
         <ChatPanel
           messages={messages}
-          onSend={handleSend}
+          onSend={handleSend} // Key: In ChatPanel: setInput -> handleSubmit -> onSend -> handleSend
           isGenerating={isGenerating}
         />
       </div>
@@ -139,6 +154,7 @@ export default function Home() {
         style={{ 
           backgroundColor: isDragging ? 'var(--divider-hover)' : 'var(--divider)',
         }}
+        // Sets dragging to true
         onMouseDown={() => setIsDragging(true)}
         onMouseEnter={(e) => {
           if (!isDragging) {

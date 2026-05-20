@@ -1,29 +1,21 @@
 "use client";
-
+import CodeProps from "@/app/utils/spec";
+import useHandleDarkMode from "../utils/darkmode";
 import { useEffect, useState, useRef } from "react";
 import { codeToHtml } from "shiki";
 
-interface CodeViewProps {
-  code: string;
-  isStreaming: boolean;
-}
-
-export default function CodeView({ code, isStreaming }: CodeViewProps) {
+// Shows the code that agent generates
+export default function CodeView({ code, isStreaming }: CodeProps) {
+  // Updates the displayed code
   const [highlightedHtml, setHighlightedHtml] = useState<string>("");
-  const [isDarkMode, setIsDarkMode] = useState(true);
+
   const codeContainerRef = useRef<HTMLDivElement>(null);
+  // To determine how much the code has changed
   const lastCodeRef = useRef<string>("");
 
-  // Detect color scheme
-  useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    setIsDarkMode(mediaQuery.matches);
-    
-    const handler = (e: MediaQueryListEvent) => setIsDarkMode(e.matches);
-    mediaQuery.addEventListener('change', handler);
-    return () => mediaQuery.removeEventListener('change', handler);
-  }, []);
+  const { isDarkMode } = useHandleDarkMode();
 
+  // Updates displayed code
   useEffect(() => {
     // Only re-highlight if code changed significantly or streaming stopped
     const shouldHighlight =
@@ -32,7 +24,9 @@ export default function CodeView({ code, isStreaming }: CodeViewProps) {
       code.length === 0;
 
     if (shouldHighlight && code) {
+      // Set new ref to current code
       lastCodeRef.current = code;
+      // Calls setter to update the embedded code view (in color coded html)
       codeToHtml(code, {
         lang: "tsx",
         theme: isDarkMode ? "github-dark" : "github-light",
@@ -50,10 +44,12 @@ export default function CodeView({ code, isStreaming }: CodeViewProps) {
     }
   }, [code, isStreaming]);
 
+  // Allows copy code button
   const handleCopy = async () => {
     await navigator.clipboard.writeText(code);
   };
 
+  // Initial
   if (!code) {
     return (
       <div 
@@ -84,6 +80,7 @@ export default function CodeView({ code, isStreaming }: CodeViewProps) {
     );
   }
 
+  // W/ code
   return (
     <div className="flex h-full flex-col" style={{ backgroundColor: 'var(--bg-secondary)' }}>
       {/* Toolbar */}
@@ -95,6 +92,7 @@ export default function CodeView({ code, isStreaming }: CodeViewProps) {
           <span className="text-xs font-medium" style={{ color: 'var(--text-muted)' }}>
             GeneratedComponent.tsx
           </span>
+          {/* If in middle of generation, displays animatic */}
           {isStreaming && (
             <span 
               className="flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs"
@@ -137,15 +135,17 @@ export default function CodeView({ code, isStreaming }: CodeViewProps) {
 
       {/* Code container */}
       <div
-        ref={codeContainerRef}
+        ref={codeContainerRef} // Ref gets this div as current
         className="flex-1 overflow-auto p-5 font-mono text-sm leading-relaxed"
       >
         {highlightedHtml ? (
+          // Where the processed html is plugged into component 
           <div
             dangerouslySetInnerHTML={{ __html: highlightedHtml }}
             className="[&_pre]:!bg-transparent [&_pre]:!p-0 [&_code]:!bg-transparent"
           />
         ) : (
+          // Pulsing cursor during generation
           <pre className="whitespace-pre-wrap" style={{ color: 'var(--text-secondary)' }}>
             <code>{code}</code>
             {isStreaming && (

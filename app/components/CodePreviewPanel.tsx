@@ -1,25 +1,23 @@
 "use client";
-
+// Same pattern of declaring shape of props for funcational component w/ interface
+import CodeProps from "@/app/utils/spec";
 import { useState } from "react";
 import CodeView from "./CodeView";
 import PreviewView from "./PreviewView";
 
-interface CodePreviewPanelProps {
-  code: string;
-  isStreaming: boolean;
-}
-
+// Whether to display the generated UI or the code that generates it 
 type Tab = "ui" | "code";
 
 export default function CodePreviewPanel({
-  code,
+  // Drills down to tabs, from Page
+  code, 
   isStreaming,
-}: CodePreviewPanelProps) {
+}: CodeProps) {
   const [activeTab, setActiveTab] = useState<Tab>("ui");
 
   return (
     <div className="flex h-full flex-col" style={{ backgroundColor: 'var(--bg-secondary)' }}>
-      {/* Tab bar */}
+      {/* Tab bar with a UI and Code buttons */}
       <div 
         className="flex h-[52px] shrink-0 items-center gap-1 px-4"
         style={{ borderBottom: '1px solid var(--border-primary)' }}
