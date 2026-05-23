@@ -19,7 +19,7 @@ export default function CodePreviewPanel({
     <div className="flex h-full flex-col" style={{ backgroundColor: 'var(--bg-secondary)' }}>
       {/* Tab bar with a UI and Code buttons */}
       <div 
-        className="flex h-[52px] shrink-0 items-center gap-1 px-4"
+        className="flex h-13 shrink-0 items-center gap-1 px-4"
         style={{ borderBottom: '1px solid var(--border-primary)' }}
       >
         <button

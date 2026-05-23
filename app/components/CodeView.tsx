@@ -142,7 +142,7 @@ export default function CodeView({ code, isStreaming }: CodeProps) {
           // Where the processed html is plugged into component 
           <div
             dangerouslySetInnerHTML={{ __html: highlightedHtml }}
-            className="[&_pre]:!bg-transparent [&_pre]:!p-0 [&_code]:!bg-transparent"
+            className="[&_pre]:bg-transparent! [&_pre]:p-0! [&_code]:bg-transparent!"
           />
         ) : (
           // Pulsing cursor during generation

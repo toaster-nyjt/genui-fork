@@ -87,7 +87,7 @@ export default function ChatPanel({
     >
       {/* Header */}
       <div
-        className="flex h-[52px] shrink-0 items-center gap-2 px-4"
+        className="flex h-13 shrink-0 items-center gap-2 px-4"
         style={{ borderBottom: '1px solid var(--border-primary)' }}
       >
         <div
