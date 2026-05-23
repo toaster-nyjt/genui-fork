@@ -53,6 +53,7 @@ export default function Home() {
       document.body.style.userSelect = "none";
     }
 
+    // Cleanups
     return () => {
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
@@ -106,7 +107,7 @@ export default function Home() {
           if (done) break;
           const chunk = decoder.decode(value, { stream: true });
           fullCode += chunk;
-          setGeneratedCode(stripCodeFences(fullCode));
+          setGeneratedCode(stripCodeFences(fullCode)); // Connects LLM output
         }
       }
 
